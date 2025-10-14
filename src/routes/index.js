@@ -5,6 +5,7 @@ import { cartRoute } from './cartRoutes.js';
 import { wishlistRouter } from './wishlistRoutes.js';
 import { affiliateRouter } from './affiliateRoutes.js';
 import { walletRoutes } from './walletRoutes.js';
+import { withdrawalRoutes } from './withdrawalRoutes.js';
 
 export const router = express.Router();
 
@@ -19,3 +20,5 @@ router.use("/wishlist", wishlistRouter)
 router.use("/affiliate", affiliateRouter)
 
 router.use("/wallet", walletRoutes)
+
+router.use("/withdrawalRoutes", withdrawalRoutes)
