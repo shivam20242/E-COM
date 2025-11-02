@@ -1,6 +1,7 @@
-import affiliatePurchaseModel from "../models/affiliatePurchaseModel.js";
+import AffiliatePurchase from "../models/affiliatePurchaseModel.js";
 import User from "../models/User.js"
 import Wallet from '../models/walletModel.js'
+import Withdrawal from '../models/withdrawalModel.js';
 
 export const getAdminDashboard = async (req, res) =>{
     try {
