@@ -1,41 +1,59 @@
 import Wallet from '../models/walletModel.js'
 import Withdrawal from '../models/withdrawalModel.js';
+import dotenv from 'dotenv';
+dotenv.config({ path: '.../.env' });
+
 
 export const requestWithdrawal = async (req, res) => {
-    try {
-        const {userId, amount, method, accountDetails } = req.body
+  try {
+    const { userId, amount, method, accountDetails } = req.body
+    const user = await Wallet.findById(userId);
+    const wallet = await Wallet.findOne({ user: userId });
 
-        const wallet = await Wallet.findOne({ user:userId});
-
-        if(!wallet){
-            return res.status(404).json({
-                success:false,
-                message:"Wallet not Found"
-            })
-        }
-
-        if(wallet.balance < amount){
-            return res.status(400).json({success:false, message:"Insufficient Balance"})
-        } 
-
-        const withdrawal = await Withdrawal.create({
-            user: userId,
-            amount,
-            method,
-            accountDetails
-        })
-
-        res.status(201).json({
-            success:true,
-            message:`Withdrawal Request submitted Successfully`,
-            withdrawal
-        })
-    } catch (error) {
-        res.status(500).json({
-            success: false,
-            message:`Error requesting withdrawal: ${error.message}`
-        })
+    if (!wallet) {
+      return res.status(404).json({
+        success: false,
+        message: "Wallet not Found"
+      })
     }
+
+    if (wallet.balance < amount) {
+      return res.status(400).json({ success: false, message: "Insufficient Balance" })
+    }
+
+    const withdrawal = await Withdrawal.create({
+      user: userId,
+      amount,
+      method,
+      accountDetails
+    })
+
+    // ✅ Notify Admin
+    const subject = "🔔 New Withdrawal Request";
+    const html = `
+      <h2>🪙 New Withdrawal Request Received</h2>
+      <p><strong>User:</strong> ${user.name}</p>
+      <p><strong>Email:</strong> ${user.email}</p>
+      <p><strong>Amount:</strong> $${amount}</p>
+      <p><strong>Requested On:</strong> ${new Date().toLocaleString()}</p>
+      ${wallet ? `<p><strong>Current Wallet Balance:</strong> $${wallet.balance}</p>` : ""}
+      <hr/>
+      <p>Please log in to the admin dashboard to review and process this request.</p>
+    `;
+
+    await sendEmail(process.env.EMAIL_USER, subject, html);
+
+    res.status(201).json({
+      success: true,
+      message: `Withdrawal Request submitted Successfully`,
+      withdrawal
+    })
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: `Error requesting withdrawal: ${error.message}`
+    })
+  }
 }
 
 // 🧑‍💼 Admin confirms withdrawal
